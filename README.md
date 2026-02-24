@@ -32,19 +32,19 @@ ScholarClaw 是一个专为“具身智能 (Embodied AI)”与“机器人学”
 - **飞书 Webhook**：在飞书群聊中添加“自定义机器人”，安全设置选择“自定义关键词”，并**务必填入关键词：`管家`**，随后复制 Webhook 链接。
 
 ### 3. 克隆与配置
+
 将本仓库克隆到本地：
-```bash
+
 git clone [https://github.com/你的用户名/你的仓库名.git](https://github.com/你的用户名/你的仓库名.git)
 cd 你的仓库名
 在项目根目录下新建一个名为 .env 的文件，并填入你的私密信息：
 
-代码段
-# 智谱 API Key
-ZHIPU_API_KEY="your_zhipu_api_key_here"
+ZHIPU_API_KEY="your_zhipu_api_key_here"  
 
-# 飞书 Webhook URL
-FEISHU_WEBHOOK_URL="your_feishu_webhook_url_here"
-4. 一键启动
+FEISHU_WEBHOOK_URL="your_feishu_webhook_url_here" 
+
+### 4. 一键启动
+
 赋予启动脚本运行权限并执行：
 
 Bash
