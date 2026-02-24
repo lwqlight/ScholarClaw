@@ -1,0 +1,26 @@
+# ==========================================
+# EmboRadar (具身雷达) 核心业务配置文件
+# ==========================================
+
+# 1. 监控领域 (命中以下任意关键词即会触发AI总结)
+keywords:
+  - "VLA"
+  - "End-to-End"
+  - "Embodied"
+  - "Humanoid"
+  - "Manipulation"
+  - "Sim-to-Real"
+  - "Reinforcement Learning"
+  - "Dexterous"
+  - "Diffusion"
+
+# 2. 监控顶会/顶刊源 (使用英文逗号分隔)
+venues: "CoRL,ICRA,IROS,RSS,Science Robotics,IEEE Transactions on Robotics"
+
+# 3. 每日定时推送时间 (24小时制)
+schedule_times:
+  - "08:30"
+  - "18:30"
+
+# 💡 新增：每次扫描最多推送的论文数量（防止刷屏，优中选优）
+max_papers_per_push: 3

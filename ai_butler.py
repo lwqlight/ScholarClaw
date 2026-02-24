@@ -1,38 +1,60 @@
 import os
 import requests
+import yaml
+import json
 from zhipuai import ZhipuAI
 import schedule
 import time
 from datetime import datetime
 from dotenv import load_dotenv
 
-# ================= 1. 环境初始化 =================
-# 加载 .env 文件中的变量
+# ================= 1. 环境与配置初始化 =================
 load_dotenv()
-
 ZHIPU_API_KEY = os.getenv("ZHIPU_API_KEY")
 FEISHU_WEBHOOK_URL = os.getenv("FEISHU_WEBHOOK_URL")
 
-# 安全校验：如果没有读到密钥，直接报错停止，防止瞎跑
 if not ZHIPU_API_KEY or not FEISHU_WEBHOOK_URL:
-    print("❌ 致命错误：未检测到 API Key 或 Webhook 链接！请检查 .env 文件。")
+    print("❌ 致命错误：未检测到 API Key 或 Webhook 链接！")
     exit(1)
 
-# ================= 2. 专属配置区 =================
-TARGET_KEYWORDS = [
-    "VLA", "End-to-End", "Embodied", "Humanoid", "Manipulation", 
-    "Sim-to-Real", "Reinforcement Learning", "Dexterous", "Diffusion"
-]
-TARGET_VENUES = "CoRL,ICRA,IROS,RSS,Science Robotics,IEEE Transactions on Robotics"
+try:
+    with open("config.yaml", "r", encoding="utf-8") as f:
+        config = yaml.safe_load(f)
+        TARGET_KEYWORDS = config.get("keywords", [])
+        TARGET_VENUES = config.get("venues", "")
+        SCHEDULE_TIMES = config.get("schedule_times", ["08:30", "18:30"])
+        # 💡 读取配置文件里的推送数量，默认是 3
+        MAX_PAPERS = config.get("max_papers_per_push", 3)
+except FileNotFoundError:
+    print("❌ 致命错误：找不到 config.yaml 配置文件！")
+    exit(1)
 
 client = ZhipuAI(api_key=ZHIPU_API_KEY)
 
+# ================= 2. 历史记忆读取 (真正的永久去重) =================
+HISTORY_FILE = "history.json"
+
+def load_history():
+    """读取已经推送过的论文标题记录"""
+    if os.path.exists(HISTORY_FILE):
+        with open(HISTORY_FILE, "r", encoding="utf-8") as f:
+            return json.load(f)
+    return []
+
+def save_history(history_list):
+    """保存推送过的论文标题到本地"""
+    with open(HISTORY_FILE, "w", encoding="utf-8") as f:
+        json.dump(history_list, f, ensure_ascii=False, indent=2)
+
 # ================= 3. 核心功能函数 =================
 def fetch_top_tier_papers():
-    print(f"\n[{datetime.now().strftime('%H:%M:%S')}] 雷达升级！正在扫描全球机器人顶会/顶刊...")
+    print(f"\n[{datetime.now().strftime('%H:%M:%S')}] 📡 具身雷达启动！正在扫描全球机器人顶会/顶刊...")
     unique_papers = {} 
     current_year = datetime.now().year
     year_range = f"{current_year-1}-{current_year}" 
+    
+    # 加载小本本，看看以前推过什么
+    pushed_history = load_history()
 
     for keyword in TARGET_KEYWORDS:
         print(f"  -> 正在检索关键词: {keyword} ...")
@@ -42,7 +64,8 @@ def fetch_top_tier_papers():
             "venue": TARGET_VENUES,
             "year": year_range,
             "fields": "title,abstract,url,venue,year",
-            "limit": 3 
+            # 这里的 limit 设得稍微大一点(比如10)，为了获取足够多的基数来进行去重过滤
+            "limit": 10 
         }
         
         try:
@@ -53,20 +76,25 @@ def fetch_top_tier_papers():
                     for paper in data['data']:
                         if not paper.get('abstract'): 
                             continue
-                        title = paper.get('title')
-                        if title not in unique_papers:
+                            
+                        raw_title = paper.get('title')
+                        
+                        # 💡 终极去重逻辑：不仅本次循环没出现过，而且历史小本本里也没出现过！
+                        if raw_title not in unique_papers and raw_title not in pushed_history:
                             venue_name = paper.get('venue', '顶级会议')
                             year = paper.get('year', current_year)
-                            unique_papers[title] = {
-                                "title": f"[{venue_name} {year}] {title}", 
+                            unique_papers[raw_title] = {
+                                "title": f"[{venue_name} {year}] {raw_title}", 
                                 "link": paper.get('url', 'https://www.semanticscholar.org/'),
-                                "summary": paper.get('abstract')
+                                "summary": paper.get('abstract'),
+                                "raw_title": raw_title # 保存原始标题用于记录历史
                             }
             time.sleep(1) 
         except Exception as e:
             print(f"检索 {keyword} 时网络开小差了: {e}")
             
-    return list(unique_papers.values())[:3] 
+    # 💡 使用配置项 MAX_PAPERS 控制最终返回的数量
+    return list(unique_papers.values())[:MAX_PAPERS] 
 
 def ai_summarize(paper):
     print(f"正在请智谱AI精读顶会文章: {paper['title'][:30]}...")
@@ -141,7 +169,7 @@ def push_empty_notice_to_feishu():
             "elements": [
                 {
                     "tag": "markdown",
-                    "content": "**报告老板：**\n\n刚刚完成了一次全球机器人顶会/顶刊的深度扫描。\n\n**🔍 结果：** 在您设定的核心关键词领域内，过去几个小时内**没有**探测到高价值的新论文发布。\n\n您可以安心喝杯咖啡，管家会继续在后台为您盯盘！☕️"
+                    "content": "**报告老板：**\n\n刚刚完成了一次全球机器人顶会/顶刊的深度扫描。\n\n**🔍 结果：** 过去几个小时内，在您的关注领域**没有**发现未读的高价值新论文。\n\n您可以安心喝杯咖啡，具身雷达会继续在后台为您盯盘！☕️"
                 }
             ]
         }
@@ -154,19 +182,30 @@ def job():
     if not papers:
         push_empty_notice_to_feishu()
         return
+        
+    pushed_history = load_history()
+    
     for paper in papers:
         summary = ai_summarize(paper)
         push_to_feishu(paper["title"], summary, paper["link"])
+        
+        # 💡 推送成功后，把论文原始标题记入本地历史库
+        pushed_history.append(paper["raw_title"])
+        save_history(pushed_history)
+        
         time.sleep(2)
+        
     print("顶会情报汇报完毕！")
 
 # ================= 4. 主程序入口 =================
 if __name__ == "__main__":
-    print("启动成功！工程化 AI管家已在后台待命...")
-    schedule.every().day.at("08:30").do(job)
-    schedule.every().day.at("18:30").do(job)
+    print("启动成功！EmboRadar (具身雷达) 已在后台待命...")
+    
+    for t in SCHEDULE_TIMES:
+        schedule.every().day.at(t).do(job)
+        print(f"已设定定时任务: 每天 {t} 自动扫描")
 
-    print("正在进行首次顶会扫描，请稍候...")
+    print("正在进行首次雷达扫描，请稍候...")
     job() 
 
     while True:

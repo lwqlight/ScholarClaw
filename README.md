@@ -43,23 +43,24 @@ ZHIPU_API_KEY="your_zhipu_api_key_here"
 
 FEISHU_WEBHOOK_URL="your_feishu_webhook_url_here" 
 
-### 4. 一键启动
+### 4. 自定义雷达设置 (灵活)
+打开 config.yaml，你可以自由修改你想要监控的学术关键词、顶会名单，以及每天推送的时间：
 
-赋予启动脚本运行权限并执行：
+YAML
+keywords:
+  - "VLA"
+  - "Humanoid"
+venues: "CoRL,ICRA,IROS"
+schedule_times:
+  - "08:30"
+  - "18:30"
+### 5. 一键启动
+赋予脚本执行权限并运行：
 
 Bash
 chmod +x start.sh
 ./start.sh
-管家启动后会立即执行一次全网扫描，随后将挂载在后台，默认每天 08:30 和 18:30 为您自动汇报。
 
-🛠️ 高级自定义
-你可以通过修改 ai_butler.py 文件中的配置区，打造完全属于你自己的学术管家：
-
-修改监控领域：更改 TARGET_KEYWORDS 列表，例如加入 "Autonomous Driving", "LLM", "SLAM" 等。
-
-修改监控顶会：更改 TARGET_VENUES 字符串，例如加入 "CVPR", "NeurIPS" 等。
-
-修改汇报频率：在代码底部的 schedule.every().day.at("08:30").do(job) 处修改为你习惯的作息时间。
 
 📄 许可证
 本项目采用 MIT 许可证，欢迎自由探索与改造。
