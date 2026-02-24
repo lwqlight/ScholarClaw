@@ -1,0 +1,182 @@
+import requests
+from zhipuai import ZhipuAI
+import schedule
+import time
+from datetime import datetime
+
+# ================= 专属配置区 =================
+ZHIPU_API_KEY = "92ad7150b6ee438ca1a89816fa9ee626.91gnhT9CiuHZb4Q4" 
+FEISHU_WEBHOOK_URL = "https://open.feishu.cn/open-apis/bot/v2/hook/758a24bd-de14-42e1-b62d-d0b68c050d9d" 
+
+# 💡 新增了更多具身智能/机器人核心关键词
+TARGET_KEYWORDS = [
+    "VLA", "End-to-End", "Embodied", "Humanoid", "Manipulation", 
+    "Sim-to-Real", "Reinforcement Learning", "Dexterous", "Diffusion"
+]
+
+TARGET_VENUES = "CoRL,ICRA,IROS,RSS,Science Robotics,IEEE Transactions on Robotics"
+# ==============================================
+
+client = ZhipuAI(api_key=ZHIPU_API_KEY)
+
+def fetch_top_tier_papers():
+    print(f"\n[{datetime.now().strftime('%H:%M:%S')}] 雷达升级！正在扫描全球机器人顶会/顶刊...")
+    
+    unique_papers = {} 
+    current_year = datetime.now().year
+    year_range = f"{current_year-1}-{current_year}" 
+
+    for keyword in TARGET_KEYWORDS:
+        print(f"  -> 正在检索关键词: {keyword} ...")
+        url = "https://api.semanticscholar.org/graph/v1/paper/search"
+        params = {
+            "query": keyword,
+            "venue": TARGET_VENUES,
+            "year": year_range,
+            "fields": "title,abstract,url,venue,year",
+            "limit": 3  # 每个关键词最多取3篇，避免重复和信息过载
+        }
+        
+        try:
+            response = requests.get(url, params=params, timeout=10)
+            if response.status_code == 200:
+                data = response.json()
+                if 'data' in data:
+                    for paper in data['data']:
+                        if not paper.get('abstract'): 
+                            continue
+                        
+                        title = paper.get('title')
+                        if title not in unique_papers:
+                            venue_name = paper.get('venue', '顶级会议')
+                            year = paper.get('year', current_year)
+                            unique_papers[title] = {
+                                "title": f"[{venue_name} {year}] {title}", 
+                                "link": paper.get('url', 'https://www.semanticscholar.org/'),
+                                "summary": paper.get('abstract')
+                            }
+            time.sleep(1) 
+        except Exception as e:
+            print(f"检索 {keyword} 时网络开小差了: {e}")
+            
+    return list(unique_papers.values())[:3] 
+
+def ai_summarize(paper):
+    print(f"正在请智谱AI精读顶会文章: {paper['title'][:30]}...")
+    prompt = f"""
+    你是一个顶级的具身智能与机器人学术助理。请阅读以下这篇最新发表在顶级会议/期刊上的论文摘要，用中文为我总结。
+    要求：
+    1. 用一句大白话概括它解决了什么行业痛点。
+    2. 列出2-3个核心创新点（算法架构或物理验证）。
+    3. 语气专业且精炼。
+    
+    论文标题：{paper['title']}
+    论文摘要：{paper['summary']}
+    """
+    
+    try:
+        response = client.chat.completions.create(
+            model="glm-4-flash",
+            messages=[
+                {"role": "system", "content": "你是一个严谨的学术助手。"},
+                {"role": "user", "content": prompt}
+            ],
+        )
+        return response.choices[0].message.content
+    except Exception as e:
+        return f"AI总结失败: {e}"
+
+def push_to_feishu(paper_title, ai_summary, paper_link):
+    print("正在推送硬核情报到飞书...")
+    payload = {
+        "msg_type": "interactive",
+        "card": {
+            "config": {"wide_screen_mode": True},
+            "header": {
+                "title": {"tag": "plain_text", "content": "👑 顶会情报速递 (管家特供)"},
+                "template": "red" 
+            },
+            "elements": [
+                {
+                    "tag": "markdown",
+                    "content": f"**📄 论文标题：**\n{paper_title}\n\n**💡 核心提炼：**\n{ai_summary}"
+                },
+                {"tag": "hr"},
+                {
+                    "tag": "action",
+                    "actions": [
+                        {
+                            "tag": "button",
+                            "text": {"tag": "plain_text", "content": "🔗 点击阅读原文"},
+                            "type": "primary",
+                            "url": paper_link
+                        }
+                    ]
+                }
+            ]
+        }
+    }
+    
+    response = requests.post(FEISHU_WEBHOOK_URL, json=payload)
+    result = response.json()
+    if result.get("code") == 0:
+        print("✅ 飞书情报推送成功！")
+    else:
+        print(f"❌ 飞书推送失败被拦截！报错信息: {result}")
+
+# 💡 新增：当没有新论文时，推送一个“平安报备”卡片
+def push_empty_notice_to_feishu():
+    print("没有发现新论文，正在向飞书汇报平安...")
+    payload = {
+        "msg_type": "interactive",
+        "card": {
+            "config": {"wide_screen_mode": True},
+            "header": {
+                # 必须带上“管家”暗号！
+                "title": {"tag": "plain_text", "content": "☕ 顶会雷达扫描完毕 (管家报备)"},
+                "template": "grey" # 用灰色表示没有警报/更新
+            },
+            "elements": [
+                {
+                    "tag": "markdown",
+                    "content": "**报告老板：**\n\n刚刚完成了一次全球机器人顶会/顶刊的深度扫描。\n\n**🔍 结果：** 在您设定的核心关键词领域内，过去几个小时内**没有**探测到高价值的新论文发布。\n\n您可以安心喝杯咖啡，管家会继续在后台为您盯盘！☕️"
+                }
+            ]
+        }
+    }
+    
+    response = requests.post(FEISHU_WEBHOOK_URL, json=payload)
+    result = response.json()
+    if result.get("code") == 0:
+        print("✅ 无更新平安报备推送成功！")
+    else:
+        print(f"❌ 报备推送失败被拦截！报错信息: {result}")
+
+
+def job():
+    papers = fetch_top_tier_papers()
+    
+    # 💡 新增逻辑：如果 papers 是空的，调用报备函数
+    if not papers:
+        push_empty_notice_to_feishu()
+        return
+        
+    for paper in papers:
+        summary = ai_summarize(paper)
+        push_to_feishu(paper["title"], summary, paper["link"])
+        time.sleep(2)
+    
+    print("顶会情报汇报完毕！")
+
+# ================= 定时任务设置 =================
+print("启动成功！顶会雷达版 AI管家已在后台待命...")
+schedule.every().day.at("08:30").do(job)
+schedule.every().day.at("18:30").do(job)
+
+# 首次启动测试
+print("正在进行首次顶会扫描，请稍候...")
+job() 
+
+while True:
+    schedule.run_pending()
+    time.sleep(60)
