@@ -1,5 +1,15 @@
 [
   "AgiBot World Colosseo: A Large-Scale Manipulation Platform for Scalable and Intelligent Embodied Systems",
   "UAD: Unsupervised Affordance Distillation for Generalization in Robotic Manipulation",
-  "A Dexterous and Compliant (DexCo) Hand Based on Soft Hydraulic Actuation for Human-Inspired Fine In-Hand Manipulation"
+  "A Dexterous and Compliant (DexCo) Hand Based on Soft Hydraulic Actuation for Human-Inspired Fine In-Hand Manipulation",
+  "Refined Policy Distillation: From VLA Generalists to RL Experts",
+  "IRef-VLA: A Benchmark for Interactive Referential Grounding with Imperfect Language in 3D Scenes",
+  "Refined Policy Distillation: From VLA Generalists to RL Experts",
+  "IRef-VLA: A Benchmark for Interactive Referential Grounding with Imperfect Language in 3D Scenes",
+  "PD-VLA: Accelerating Vision-Language-Action Model Integrated with Action Chunking via Parallel Decoding",
+  "Improving Vision-Language-Action Model with Online Reinforcement Learning",
+  "MoRE: Unlocking Scalability in Reinforcement Learning for Quadruped Vision-Language-Action Models",
+  "ReBot: Scaling Robot Learning with Real-to-Sim-to-Real Robotic Video Synthesis",
+  "Learning Perceptive Humanoid Locomotion over Challenging Terrain",
+  "Humanoid Whole-Body Locomotion on Narrow Terrain via Dynamic Balance and Reinforcement Learning"
 ]

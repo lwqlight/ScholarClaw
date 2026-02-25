@@ -11,6 +11,16 @@ ScholarClaw 是一个专为“具身智能 (Embodied AI)”与“机器人学”
 
 ---
 
+## 📸 效果展示 (Demo)
+
+通过深度优化的结构化 Prompt 与飞书卡片排版，ScholarClaw 能将晦涩冗长的英文文献，瞬间转化为**“痛点 ➡️ 路线 ➡️ 突破”**的三段式中文硬核卡片：
+
+![EmboRadar 推送效果展示](data/img.jpg)
+
+*(上图展示了 ScholarClaw 在飞书端的实际推送效果：包含顶会标识提权、作者与发表时间提取、以及大模型深度总结。)*
+
+---
+
 ## ✨ 核心特性
 
 - 🎯 **精准雷达**：直连 Semantic Scholar API，精准捕捉 CoRL, ICRA, IROS, RSS 等顶会以及 Science Robotics 等顶刊的最新发表动态，彻底告别水文。
