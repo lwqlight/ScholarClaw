@@ -1,0 +1,7 @@
+requests
+feedparser
+zhipuai
+schedule
+python-dotenv
+PyYAML
+gradio
