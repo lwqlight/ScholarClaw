@@ -14,7 +14,7 @@
 
 ### 1. 极简 Web 控制台 (0 代码配置)
 只需在网页上点点点，即可完成所有复杂的 API 和监控规则配置，配置会自动持久化保存。
-![EmboRadar WebUI 控制台](data/webui_demo.png) *(建议您在此处放一张本地运行 WebUI 的截图)*
+![EmboRadar WebUI 控制台](data/webui_demo.png)
 
 ### 2. 硬核飞书推送 (三分段提炼)
 强制大模型采用**“🎯核心痛点 ➡️ 🛠️技术路线 ➡️ ✨创新突破”**的三段式结构，直接降维打击传统的水文罗列：
@@ -41,7 +41,7 @@
 
 ### 2. 下载项目
 
-git clone [https://github.com/你的用户名/你的仓库名.git](https://github.com/你的用户名/你的仓库名.git)
+git clone https://github.com/lwqlight/ScholarClaw
 cd 你的仓库名
 
 #### 3. 一键启动
