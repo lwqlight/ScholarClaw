@@ -42,7 +42,7 @@
 ### 2. 下载项目
 
 git clone https://github.com/lwqlight/ScholarClaw
-cd 你的仓库名
+cd ScholarClaw
 
 #### 3. 一键启动
 我们为您准备了全自动的启动脚本，会自动安装所有环境并弹开网页：
