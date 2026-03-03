@@ -10,7 +10,7 @@ echo "🔌 正在唤醒本地 Conda 引擎..."
 eval "$(conda shell.bash hook)"
 
 echo "🔄 正在切换到 base 环境..."
-conda activate base
+conda activate yolov10
 
 echo "📦 正在检查并安装缺失的依赖 (已有依赖会自动跳过)..."
 pip install -r requirements.txt -q

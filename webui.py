@@ -14,10 +14,13 @@ from zhipuai import ZhipuAI
 ENV_FILE = ".env"
 CONFIG_FILE = "config.yaml"
 HISTORY_FILE = "history.json"
+LOG_FILE = "radar.log" # 💡 新增：物理日志文件
 
 # 初始化空文件
 if not os.path.exists(ENV_FILE):
     open(ENV_FILE, 'w').close()
+if not os.path.exists(LOG_FILE):
+    open(LOG_FILE, 'w', encoding='utf-8').close()
 if not os.path.exists(CONFIG_FILE):
     default_config = {
         "keywords": ["VLA", "Humanoid", "Sim-to-Real", "End-to-End"],
@@ -41,24 +44,34 @@ def save_history(history_list):
     with open(HISTORY_FILE, "w", encoding="utf-8") as f:
         json.dump(history_list, f, ensure_ascii=False, indent=2)
 
+# 💡 新增：全局日志写入函数
+def write_log(msg):
+    timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+    full_msg = f"[{timestamp}] {msg}"
+    print(full_msg) # 终端依然打印
+    with open(LOG_FILE, "a", encoding="utf-8") as f:
+        f.write(full_msg + "\n") # 同时写入物理文件
+
+# 💡 新增：读取最新日志函数给前端展示
+def read_logs():
+    if not os.path.exists(LOG_FILE):
+        return "暂无日志..."
+    with open(LOG_FILE, "r", encoding="utf-8") as f:
+        lines = f.readlines()
+    # 只返回最后 30 行，防止前端卡顿
+    return "".join(lines[-30:])
+
 # ================= 2. 雷达核心逻辑 =================
 def run_radar_scan():
-    logs = []
-    def log(msg):
-        timestamp = datetime.now().strftime('%H:%M:%S')
-        full_msg = f"[{timestamp}] {msg}"
-        print(full_msg)
-        logs.append(full_msg)
-
-    log("📡 具身雷达开始扫描...")
+    write_log("📡 具身雷达开始扫描...")
     
     load_dotenv(ENV_FILE)
     ZHIPU_API_KEY = os.getenv("ZHIPU_API_KEY", "")
     FEISHU_WEBHOOK_URL = os.getenv("FEISHU_WEBHOOK_URL", "")
     
     if not ZHIPU_API_KEY or not FEISHU_WEBHOOK_URL:
-        log("❌ 错误：请先在【基础设置】中填写 API Key 和 Webhook！")
-        return "\n".join(logs)
+        write_log("❌ 错误：请先在【基础设置】中填写 API Key 和 Webhook！")
+        return read_logs()
         
     client = ZhipuAI(api_key=ZHIPU_API_KEY)
     
@@ -75,7 +88,7 @@ def run_radar_scan():
     year_range = f"{datetime.now().year-1}-{datetime.now().year}"
 
     for kw in keywords:
-        log(f"-> 正在检索关键词: {kw}")
+        write_log(f"-> 正在检索关键词: {kw}")
         url = "https://api.semanticscholar.org/graph/v1/paper/search"
         params = {"query": kw, "venue": venues, "year": year_range, "fields": "title,abstract,url,venue,year,authors,publicationDate", "limit": 10}
         try:
@@ -92,13 +105,12 @@ def run_radar_scan():
                         added += 1
             time.sleep(1)
         except Exception as e:
-            log(f"⚠️ 检索 {kw} 失败: {e}")
+            write_log(f"⚠️ 检索 {kw} 失败: {e}")
 
     papers_to_push = list(unique_papers.values())[:max_total]
     
-    # 💡 完美还原的平安报备卡片
     if not papers_to_push:
-        log("☕ 未发现新论文，发送平安报备...")
+        write_log("☕ 未发现新论文，发送平安报备...")
         payload = {
             "msg_type": "interactive",
             "card": {
@@ -116,12 +128,11 @@ def run_radar_scan():
             }
         }
         requests.post(FEISHU_WEBHOOK_URL, json=payload)
-        return "\n".join(logs)
+        return read_logs()
         
     for p in papers_to_push:
-        log(f"🧠 正在请 AI 总结: {p['title'][:20]}...")
+        write_log(f"🧠 正在请 AI 总结: {p['title'][:20]}...")
         
-        # 💡 完美还原的严苛大模型提示词
         prompt = f"""
         你是一个顶级的具身智能与机器人学术助理。请阅读以下论文摘要，并严格按照我提供的 Markdown 格式输出总结。
         
@@ -159,7 +170,6 @@ def run_radar_scan():
         date_str = p.get('publicationDate') or str(p.get('year', '未知'))
         venue_str = p.get('venue', '顶级会议')
         
-        # 💡 完美还原的论文推送红色卡片
         payload = {
             "msg_type": "interactive",
             "card": {
@@ -191,30 +201,38 @@ def run_radar_scan():
         
         res = requests.post(FEISHU_WEBHOOK_URL, json=payload)
         if res.json().get("code") == 0:
-            log(f"✅ 推送成功: {p['title'][:15]}...")
+            write_log(f"✅ 推送成功: {p['title'][:15]}...")
             pushed_history.append(p['title'])
             save_history(pushed_history)
         else:
-            log(f"❌ 推送被拦截: {res.json()}")
+            write_log(f"❌ 推送被拦截: {res.json()}")
         
-        time.sleep(5) # 防风控
+        time.sleep(5)
 
-    log("🎉 扫描及推送任务全部完成！")
-    return "\n".join(logs)
+    write_log("🎉 扫描及推送任务全部完成！")
+    return read_logs()
 
 # ================= 3. 后台定时任务线程 =================
 def run_scheduler():
+    last_times = []
     while True:
-        with open(CONFIG_FILE, "r", encoding="utf-8") as f:
-            config = yaml.safe_load(f)
-        schedule.clear()
-        for t in config.get("schedule_times", ["08:30", "18:30"]):
-            schedule.every().day.at(t).do(run_radar_scan)
+        try:
+            with open(CONFIG_FILE, "r", encoding="utf-8") as f:
+                config = yaml.safe_load(f)
+            current_times = config.get("schedule_times", ["08:30", "18:30"])
+            
+            if current_times != last_times:
+                schedule.clear()
+                for t in current_times:
+                    schedule.every().day.at(t).do(run_radar_scan)
+                last_times = current_times
+                write_log(f"⏰ 后台定时任务已刷新，将在每天的 {current_times} 自动执行")
+        except Exception as e:
+            pass 
             
         schedule.run_pending()
         time.sleep(30)
 
-# 启动后台守护线程
 threading.Thread(target=run_scheduler, daemon=True).start()
 
 # ================= 4. Gradio Web UI =================
@@ -229,7 +247,11 @@ def load_settings():
     times = "\n".join(c.get("schedule_times", []))
     max_k = c.get("max_papers_per_keyword", 1)
     max_t = c.get("max_total_push", 5)
-    return zhipu, feishu, kws, venues, times, max_k, max_t
+    
+    # 启动时顺便读取一下最新的日志
+    current_logs = read_logs()
+    
+    return zhipu, feishu, kws, venues, times, max_k, max_t, current_logs
 
 def save_settings(zhipu, feishu, kws, venues, times, max_k, max_t):
     set_key(ENV_FILE, "ZHIPU_API_KEY", zhipu)
@@ -244,7 +266,7 @@ def save_settings(zhipu, feishu, kws, venues, times, max_k, max_t):
     }
     with open(CONFIG_FILE, "w", encoding="utf-8") as f:
         yaml.dump(new_config, f, allow_unicode=True)
-    return "✅ 配置已成功保存！后台定时任务将在1分钟内自动应用新时间。"
+    return "✅ 配置已成功保存！后台定时任务将在半分钟内自动应用新时间。"
 
 with gr.Blocks(title="EmboRadar 控制台", theme=gr.themes.Soft()) as demo:
     gr.Markdown("# 📡 EmboRadar (具身雷达) 智能体控制台")
@@ -270,13 +292,18 @@ with gr.Blocks(title="EmboRadar 控制台", theme=gr.themes.Soft()) as demo:
             save_status = gr.Markdown("")
             
             gr.Markdown("---")
-            run_btn = gr.Button("⚡ 立刻手动执行一次全网扫描")
-            log_output = gr.Textbox(label="运行日志", lines=10, interactive=False)
+            with gr.Row():
+                run_btn = gr.Button("⚡ 立刻手动执行一次全网扫描")
+                refresh_btn = gr.Button("🔄 刷新后台日志") # 💡 新增刷新按钮
+                
+            log_output = gr.Textbox(label="运行日志 (显示最近30条)", lines=12, interactive=False)
             
     # 绑定逻辑
-    demo.load(load_settings, inputs=[], outputs=[zhipu_input, feishu_input, keywords_input, venues_input, times_input, max_k_input, max_t_input])
+    demo.load(load_settings, inputs=[], outputs=[zhipu_input, feishu_input, keywords_input, venues_input, times_input, max_k_input, max_t_input, log_output])
     save_btn.click(save_settings, inputs=[zhipu_input, feishu_input, keywords_input, venues_input, times_input, max_k_input, max_t_input], outputs=[save_status])
+    
     run_btn.click(run_radar_scan, inputs=[], outputs=[log_output])
+    refresh_btn.click(read_logs, inputs=[], outputs=[log_output]) # 💡 绑定刷新事件
 
 if __name__ == "__main__":
     print("🌐 正在启动 Web 服务...")

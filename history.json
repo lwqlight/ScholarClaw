@@ -42,5 +42,15 @@
   "Robust Deep Reinforcement Learning in Robotics via Adaptive Gradient-Masked Adversarial Attacks",
   "Flying on Point Clouds with Reinforcement Learning",
   "Learning Dexterous Bimanual Catch Skills Through Adversarial-Cooperative Heterogeneous-Agent Reinforcement Learning",
-  "Dexterous Ungrasping Manipulation in Three Dimensions"
+  "Dexterous Ungrasping Manipulation in Three Dimensions",
+  "CLEA: Closed-Loop Embodied Agent for Enhancing Task Execution in Dynamic Environments",
+  "Embodied Escaping: End-to-End Reinforcement Learning for Robot Navigation in Narrow Environment",
+  "Design and Benchmarking of a Multimodality Sensor for Robotic Manipulation With GAN-Based Cross-Modality Interpretation",
+  "Persistent Object Gaussian Splat (POGS) for Tracking Human and Robot Manipulation of Irregularly Shaped Objects",
+  "PanopticSplatting: End-to-End Panoptic Gaussian Splatting",
+  "RadarMask: A Novel End-to-End Sparse Millimeter-Wave Radar Sequence Panoptic Segmentation and Tracking Method",
+  "A Sim-to-Real Transfer Framework for Enhancing Marine Vehicle Performance in Ocean Environments",
+  "Robotic Sim-to-Real Transfer for Long-Horizon Pick-and-Place Tasks in the Robotic Sim2Real Competition",
+  "Learning Adaptive Dexterous Grasping from Single Demonstrations",
+  "Adaptive Visuo-Tactile Fusion with Predictive Force Attention for Dexterous Manipulation"
 ]

@@ -11,6 +11,6 @@ keywords:
 max_papers_per_keyword: 2
 max_total_push: 6
 schedule_times:
-- 08:30
+- 09:30
 - '18:30'
 venues: CoRL,ICRA,IROS,RSS,Science Robotics,IEEE Transactions on Robotics
