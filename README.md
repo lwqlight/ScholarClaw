@@ -42,6 +42,8 @@
 ### 2. 下载项目
 
 git clone https://github.com/lwqlight/ScholarClaw
+
+进入项目工程
 cd ScholarClaw
 
 #### 3. 一键启动
