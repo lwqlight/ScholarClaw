@@ -33,17 +33,18 @@
 
 ---
 
-极速部署指引 (小白友好)
-1. 基础准备
+## 极速部署指引 (小白友好)
+
+### 1. 基础准备
 你的电脑上需要安装好 Miniconda 或 Anaconda。
 
 准备好你的 智谱 API Key（免费获取） 以及 飞书群机器人 Webhook 链接（⚠️ 飞书机器人安全设置请务必包含关键词：管家）。
 
-2. 下载项目
+### 2. 下载项目
 Bash
 git clone https://github.com/lwqlight/ScholarClaw
 cd ScholarClaw
-3. 一键启动
+### 3. 一键启动
 我们为您准备了全自动的启动脚本，会自动安装所有环境并弹开网页：
 
 Windows 用户：双击运行 start.bat
@@ -53,7 +54,7 @@ Mac/Linux/WSL 用户：
 Bash
 chmod +x start.sh
 ./start.sh
-4. 网页端配置与运行
+### 4. 网页端配置与运行
 终端运行成功后，浏览器会自动打开 http://127.0.0.1:7860。
 
 在 【⚙️ 1. 基础密钥设置】 中填入你的 API Key 和飞书链接。
@@ -66,7 +67,7 @@ chmod +x start.sh
 
 💡 提示： 只要这个黑色终端窗口不关，你的 AI 管家就会根据你设定的时间（如每天 08:30 和 18:30），默默在后台为你搜集顶会情报。
 
-⚠️ 常见踩坑与报错排查 (FAQ)
+### ⚠️ 常见踩坑与报错排查 (FAQ)
 ❌ 报错：ValueError: Unknown scheme for proxy URL URL('socks://...')
 🔍 原因分析：
 这是 Python 圈极其经典的“代理刺客”问题。如果你在运行前给终端挂载了 SOCKS 代理（例如使用了 export all_proxy=socks://...），由于 Gradio WebUI 底层依赖的现代网络库 httpx 默认不兼容 socks:// 协议，会导致启动瞬间直接崩溃。
@@ -96,5 +97,5 @@ history.json：本地轻量级数据库，记录已推送的论文原始标题�
 
 radar.log：物理日志文件，记录管家运行时的全部心跳与动作。
 
-📄 许可证
+### 📄 许可证
 本项目采用 MIT 许可证，欢迎自由探索、Fork 与改造！
