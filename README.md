@@ -144,7 +144,7 @@ pip install "httpx[socks]" pysocks
 
 ## 📄 许可证
 
-本项目采用 **MIT 许可证**，欢迎自由探索、Fork 与改造！
+本项目采用 **MIT 许可证**，欢迎自由探索、Fork 与改造！！
 
 ---
 
