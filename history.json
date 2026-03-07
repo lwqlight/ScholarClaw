@@ -58,5 +58,9 @@
   "HiFAR: Multi-Stage Curriculum Learning for High-Dynamics Humanoid Fall Recovery",
   "Distillation-PPO: A Novel Two-Stage Reinforcement Learning Framework for Humanoid Robot Perceptive Locomotion",
   "Embodied Domain Adaptation for Object Detection",
-  "VLM Can Be a Good Assistant: Enhancing Embodied Visual Tracking with Self-Improving Vision-Language Models"
+  "VLM Can Be a Good Assistant: Enhancing Embodied Visual Tracking with Self-Improving Vision-Language Models",
+  "Task-Specific Embodied Tactile Sensing for Dexterous Hand",
+  "Multimodal Autonomous Robotic Long-Horizon Task Planning via Embodied Language Model and Behavior Trees",
+  "AVD2: Accident Video Diffusion for Accident Video Description",
+  "NaviDiffusor: Cost-Guided Diffusion Model for Visual Navigation"
 ]

@@ -1,0 +1,5 @@
+# 智谱 API Key
+ZHIPU_API_KEY=''
+
+# 飞书 Webhook 链接
+FEISHU_WEBHOOK_URL=''
