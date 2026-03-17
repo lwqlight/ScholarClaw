@@ -274,8 +274,58 @@ with gr.Blocks(title="EmboRadar 控制台", theme=gr.themes.Soft()) as demo:
     
     with gr.Tabs():
         with gr.TabItem("⚙️ 1. 基础密钥设置"):
-            zhipu_input = gr.Textbox(label="智谱 API Key (必填)", type="password", placeholder="填入从智谱开放平台获取的 API Key")
-            feishu_input = gr.Textbox(label="飞书 Webhook 链接 (必填)", type="password", placeholder="填入带'管家'关键词的飞书机器人链接")
+            with gr.Row():
+                with gr.Column(scale=1):
+                    zhipu_input = gr.Textbox(label="智谱 API Key (必填)", type="password", placeholder="填入从智谱开放平台获取的 API Key")
+                with gr.Column(scale=0, min_width=50):
+                    zhipu_help_btn = gr.Button("❓", variant="secondary", size="sm")
+
+            with gr.Accordion("📖 如何获取智谱 API Key？", open=False) as zhipu_help:
+                gr.Markdown("""
+                ### 📝 获取步骤：
+
+                1. **访问官网**：打开 [智谱AI开放平台](https://open.bigmodel.cn/)
+
+                2. **注册/登录**：使用手机号完成注册并登录
+
+                3. **进入控制台**：点击右上角「控制台」
+
+                4. **创建API Key**：
+                   - 在左侧菜单选择「API Key」
+                   - 点击「新增API Key」
+                   - 复制生成的 Key（格式类似：`xxx.yyyyyyyyy`）
+
+                💡 **提示**：新用户通常有免费额度，足够日常使用！
+                """)
+
+            with gr.Row():
+                with gr.Column(scale=1):
+                    feishu_input = gr.Textbox(label="飞书 Webhook 链接 (必填)", type="password", placeholder="填入带'管家'关键词的飞书机器人链接")
+                with gr.Column(scale=0, min_width=50):
+                    feishu_help_btn = gr.Button("❓", variant="secondary", size="sm")
+
+            with gr.Accordion("📖 如何获取飞书 Webhook？", open=False) as feishu_help:
+                gr.Markdown("""
+                ### 📝 获取步骤：
+
+                1. **打开飞书**：在飞书 PC 客户端或网页版中，进入要接收消息的群聊
+
+                2. **添加机器人**：
+                   - 点击群聊右上角「...」更多
+                   - 选择「群机器人」→「添加机器人」
+                   - 选择「自定义机器人」
+
+                3. **配置机器人**：
+                   - 设置机器人名称（建议包含「管家」二字，如「学术管家」）
+                   - 上传头像（可选）
+                   - 点击「添加」
+
+                4. **复制 Webhook 链接**：
+                   - 添加成功后会显示 Webhook 地址
+                   - 复制完整链接（格式：`https://open.feishu.cn/open-apis/bot/v2/hook/xxx`）
+
+                ⚠️ **重要**：安全设置中务必添加关键词「管家」，否则推送会被拦截！
+                """)
             
         with gr.TabItem("🧠 2. 雷达扫描规则"):
             with gr.Row():
@@ -301,9 +351,21 @@ with gr.Blocks(title="EmboRadar 控制台", theme=gr.themes.Soft()) as demo:
     # 绑定逻辑
     demo.load(load_settings, inputs=[], outputs=[zhipu_input, feishu_input, keywords_input, venues_input, times_input, max_k_input, max_t_input, log_output])
     save_btn.click(save_settings, inputs=[zhipu_input, feishu_input, keywords_input, venues_input, times_input, max_k_input, max_t_input], outputs=[save_status])
-    
+
     run_btn.click(run_radar_scan, inputs=[], outputs=[log_output])
     refresh_btn.click(read_logs, inputs=[], outputs=[log_output]) # 💡 绑定刷新事件
+
+    # 帮助按钮点击事件 - 展开/收起 Accordion
+    zhipu_help_btn.click(
+        lambda: gr.Accordion(open=True),
+        inputs=[],
+        outputs=[zhipu_help]
+    )
+    feishu_help_btn.click(
+        lambda: gr.Accordion(open=True),
+        inputs=[],
+        outputs=[feishu_help]
+    )
 
 if __name__ == "__main__":
     print("🌐 正在启动 Web 服务...")
